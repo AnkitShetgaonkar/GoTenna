@@ -1,5 +1,6 @@
 package droid.ankit.gotennademo
 
+import android.os.Handler
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -14,14 +15,11 @@ import org.koin.standalone.inject
 
 class MapViewModel:BaseViewModel<MapViewState>(),LifecycleObserver, PermissionCallback {
 
-
     private val dataRepository:DataRepository by inject()
-
 
     init {
         state.value = MapViewState()
     }
-
 
     override fun showPermissionRationale() {
         updateState { it.copy(event=MapScreenEvent.ShowPermissionRationale
@@ -43,7 +41,11 @@ class MapViewModel:BaseViewModel<MapViewState>(),LifecycleObserver, PermissionCa
 
 
     fun getPinPoints() {
-        updateState { it.copy(pinPointList = dataRepository.getPinPoints()) }
+        updateState { it.copy(pinPointList = dataRepository.getPinPoints(true)) }
+    }
+
+    fun getCachedPinPoints() {
+        updateState { it.copy(pinPointList = dataRepository.getPinPoints(false)) }
     }
 
 

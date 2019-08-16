@@ -6,17 +6,19 @@ import android.util.Log
 import android.view.ViewGroup
 import android.view.LayoutInflater
 import android.view.View
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.etiennelenhart.eiffel.state.peek
 import com.etiennelenhart.eiffel.viewmodel.delegate.providedViewModel
-import droid.ankit.database.PinPoint
-import kotlinx.android.synthetic.main.fragment_bottom.*
+import androidx.recyclerview.widget.DividerItemDecoration
+
+
 
 
 class LocationFragment: BottomSheetDialogFragment() {
 
     private val viewModel by providedViewModel<MapViewModel>()
+    private val TAG:String = LocationFragment::class.java.name
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -25,20 +27,22 @@ class LocationFragment: BottomSheetDialogFragment() {
     ): View? {
 
         val view = inflater.inflate(R.layout.fragment_bottom, container,false)
-        val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerView)
-        recyclerView.layoutManager = LinearLayoutManager(context)
-        val locationAdapter = LocationAdapter(context!!)
-        recyclerView.adapter = LocationAdapter(context!!)
+        context?.let {
+            val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerView)
+            recyclerView.layoutManager = LinearLayoutManager(context)
+            val locationAdapter = LocationAdapter(context!!)
+            recyclerView.adapter = locationAdapter
 
-
-        viewModel.observeState(this){
-            Log.e("MapFragment ","test $it")
-            it.pinPointList?.observe(this,androidx.lifecycle.Observer {pinPoints->
-                Log.e("Live Data in fragments ","printing out size  "+pinPoints.size)
-                locationAdapter.setData(pinPoints)
-            })
+            viewModel.getCachedPinPoints()
+            //viewModel.test.
+            viewModel.observeState(this.viewLifecycleOwner){
+                Log.e(TAG,"observe $it")
+                it.pinPointList?.observe(this,Observer {pinPoints->
+                    locationAdapter.setData(pinPoints)
+                })
+            }
+            lifecycle.addObserver(viewModel)
         }
-        lifecycle.addObserver(viewModel)
 
         return view
     }

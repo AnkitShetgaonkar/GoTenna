@@ -1,6 +1,5 @@
 package droid.ankit.gotennademo
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import droid.ankit.database.PinPoint
 import droid.ankit.database.PinPointDao
@@ -18,8 +17,9 @@ class DataRepository:KoinComponent,DataService {
     private val api:GoTennaServiceImpl by inject()
 
 
-    override fun getPinPoints(): LiveData<List<PinPoint>> {
-        refreshPinPoints()
+    override fun getPinPoints(refresh: Boolean): LiveData<List<PinPoint>> {
+        if(refresh)
+            refreshPinPoints()
         return pinPointDao.loadAll()
     }
 
@@ -34,5 +34,5 @@ class DataRepository:KoinComponent,DataService {
 }
 
 interface DataService {
-    fun getPinPoints():LiveData<List<PinPoint>>?
+    fun getPinPoints(refresh: Boolean):LiveData<List<PinPoint>>?
 }

@@ -1,6 +1,7 @@
 package droid.ankit.gotennademo
 
 import android.content.Context
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,14 +24,12 @@ class LocationAdapter(private val context: Context)
 
     fun setData(list:List<PinPoint>) {
         this.items = list
-        notifyDataSetChanged()
-    }
+        notifyDataSetChanged() }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.tvName.text = items[position].name
         holder.tvDescrip.text = items[position].description
     }
-
 
 }
 

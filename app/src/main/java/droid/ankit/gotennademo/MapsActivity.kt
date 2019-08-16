@@ -1,14 +1,10 @@
 package droid.ankit.gotennademo
 
-import android.Manifest
 import android.annotation.SuppressLint
-import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.Observer
 import com.etiennelenhart.eiffel.state.peek
 import com.etiennelenhart.eiffel.viewmodel.delegate.providedViewModel
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -26,16 +22,15 @@ import droid.ankit.database.PinPoint
 import droid.ankit.gotennademo.base.BaseActivity
 import droid.ankit.gotennademo.util.PermissionCallback
 import droid.ankit.gotennademo.util.PermissionManager
-import org.koin.android.ext.android.get
 import org.koin.android.ext.android.inject
-import java.util.*
-import java.util.function.Consumer
 
 
 class MapsActivity : BaseActivity(), OnMapReadyCallback, PermissionCallback {
 
 
     private val permissionManager: PermissionManager by inject()
+
+    private val TAG:String = MapsActivity::class.java.name
 
     private val viewModel by providedViewModel<MapViewModel>()
     private lateinit var mMap: GoogleMap
@@ -48,9 +43,9 @@ class MapsActivity : BaseActivity(), OnMapReadyCallback, PermissionCallback {
 
         viewModel.observeState(this){
             it.event?.peek { event-> handleScreenEvent(event) }
-            it.pinPointList?.observe(this,androidx.lifecycle.Observer {pinPoints->
+            it.pinPointList?.observe(this, Observer { pinPoints->
                 markPinPointData(pinPoints)
-                Log.e("Live Data","printing out size  "+pinPoints.size)
+                Log.e(TAG,"printing out size of points "+pinPoints.size)
             })
         }
         lifecycle.addObserver(viewModel)
@@ -104,6 +99,7 @@ class MapsActivity : BaseActivity(), OnMapReadyCallback, PermissionCallback {
     }
 
     private fun markPinPointData(pinPoints: List<PinPoint>) {
+        mMap
         for(pinPoint in pinPoints) {
             val userLocation = LatLng(pinPoint.latitude, pinPoint.longitude)
             mMap.addMarker(MarkerOptions().position(userLocation)
@@ -113,11 +109,12 @@ class MapsActivity : BaseActivity(), OnMapReadyCallback, PermissionCallback {
     }
 
     private fun showBottomLocations() {
-        val addPhotoBottomDialogFragment = LocationFragment()
-        addPhotoBottomDialogFragment.show(
+        val addBottomDialogFragment = LocationFragment()
+        addBottomDialogFragment.show(
             supportFragmentManager,
             "locations_fragment"
         )
+
     }
     @SuppressLint("MissingPermission")
     private fun markUserLocation() {
@@ -126,11 +123,13 @@ class MapsActivity : BaseActivity(), OnMapReadyCallback, PermissionCallback {
         }
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-            val userLocation = LatLng(location.latitude, location.longitude)
-            mMap.addMarker(MarkerOptions()
-                .position(userLocation).title("You are here")
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)))
-            mMap.moveCamera(CameraUpdateFactory.newLatLng(userLocation))
+            location?.let {
+                val userLocation = LatLng(location.latitude, location.longitude)
+                mMap.addMarker(MarkerOptions()
+                    .position(userLocation).title(resources.getString(R.string.user_location_status))
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)))
+                mMap.moveCamera(CameraUpdateFactory.newLatLng(userLocation))
+            }
         }
     }
 
