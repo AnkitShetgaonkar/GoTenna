@@ -20,4 +20,4 @@ Extra Features
 1. App supports orientation changes with the live data in place.
 2. If not connected to internet, and gets the data from local db, then the app notifies the user that data might be old.
 3. User Permissions are handled elegantly, with snackbar poping from below with action button or notifying the user to enable permissions from app info if said "do not ask" to permissions
-4. Using BottomSheetDialog to show the list of points.
+4. Using BottomSheetDialogFragment with recycler view to show the list of points.
