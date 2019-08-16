@@ -163,7 +163,7 @@ class MapsActivity : BaseActivity(), OnMapReadyCallback, PermissionCallback {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         fusedLocationClient.lastLocation.addOnSuccessListener { location ->
             location?.let {
-                val userLocation = LatLng(40.6923372,-73.9882378)
+                val userLocation = LatLng(location.latitude,location.longitude)
                 mMap.addMarker(MarkerOptions()
                     .position(userLocation).title(resources.getString(R.string.user_location_status))
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)))
