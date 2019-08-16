@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">GoTennaDemo</string>
+    <string name="title_activity_maps">Map</string>
+    <string name="user_location_needed">We will need to know your location to make better suggestions</string>
+    <string name="user_location_denied_message">Go to AppInfo>App and enable Permissions for better suggestions</string>
+    <string name="ok">ok</string>
+</resources>
