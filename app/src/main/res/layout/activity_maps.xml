@@ -5,14 +5,21 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-
-    <fragment
-            xmlns:tools="http://schemas.android.com/tools"
+    <FrameLayout
+            android:id="@+id/mapView"
+            android:name="com.google.android.gms.maps.SupportMapFragment"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/map"
-            tools:context=".MapsActivity"
-            android:name="com.google.android.gms.maps.SupportMapFragment"/>
+            android:layout_height="match_parent" />
+
+    <TextView
+            android:visibility="invisible"
+            android:gravity="center"
+            android:text="@string/data_out_sync"
+            android:textColor="@color/colorAccent"
+            android:background="#D3D3D3"
+            android:id="@+id/tvDataStatus"
+            android:layout_width="match_parent"
+            android:layout_height="20dp"/>
 
     <Button
             android:layout_gravity="bottom"
@@ -21,6 +28,15 @@
             android:id="@+id/btnShowList"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
+
+    <ProgressBar
+            android:visibility="invisible"
+            android:id="@+id/progress"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_margin="30dp"
+            android:layout_gravity="bottom|right"
+    />
 
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

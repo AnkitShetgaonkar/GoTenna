@@ -15,10 +15,12 @@ import org.koin.standalone.inject
 
 class MapViewModel:BaseViewModel<MapViewState>(),LifecycleObserver, PermissionCallback {
 
-    private val dataRepository:DataRepository by inject()
+    private val mDataRepository:DataRepository by inject()
+    private val mNetworkStatus:MutableLiveData<Pair<Boolean,Boolean>> = MutableLiveData()
 
     init {
         state.value = MapViewState()
+        updateState { it.copy(fetchingFromNetwork = mNetworkStatus) }
     }
 
     override fun showPermissionRationale() {
@@ -39,25 +41,23 @@ class MapViewModel:BaseViewModel<MapViewState>(),LifecycleObserver, PermissionCa
         return null
     }
 
-
     fun getPinPoints() {
-        updateState { it.copy(pinPointList = dataRepository.getPinPoints(true)) }
+        updateState { it.copy(pinPointList = mDataRepository.getPinPoints(true,mNetworkStatus)) }
     }
 
     fun getCachedPinPoints() {
-        updateState { it.copy(pinPointList = dataRepository.getPinPoints(false)) }
+        updateState { it.copy(pinPointList = mDataRepository.getPinPoints(false,mNetworkStatus)) }
     }
-
 
 }
 
 sealed class MapScreenEvent:ViewEvent(){
-    class ShowProgress():MapScreenEvent()
     class ShowPermissionRationale(val message:Int):MapScreenEvent()
     class PermissionDenied(val message:Int):MapScreenEvent()
     class PermissionGranted:MapScreenEvent()
 }
 
 data class MapViewState(val pinPointList :LiveData<List<PinPoint>>?=null,
+                        val fetchingFromNetwork: LiveData<Pair<Boolean,Boolean>>?=null,
                         val event:MapScreenEvent?=null):ViewState
 

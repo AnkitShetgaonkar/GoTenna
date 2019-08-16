@@ -2,8 +2,13 @@ package droid.ankit.gotennademo
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.os.Handler
+import android.os.Message
 import android.util.Log
+import android.view.View
 import android.widget.Button
+import android.widget.ProgressBar
+import android.widget.TextView
 import androidx.lifecycle.Observer
 import com.etiennelenhart.eiffel.state.peek
 import com.etiennelenhart.eiffel.viewmodel.delegate.providedViewModel
@@ -25,6 +30,8 @@ import droid.ankit.gotennademo.util.PermissionManager
 import org.koin.android.ext.android.inject
 
 
+
+
 class MapsActivity : BaseActivity(), OnMapReadyCallback, PermissionCallback {
 
 
@@ -35,11 +42,15 @@ class MapsActivity : BaseActivity(), OnMapReadyCallback, PermissionCallback {
     private val viewModel by providedViewModel<MapViewModel>()
     private lateinit var mMap: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
-
+    private lateinit var networkProgress:ProgressBar
+    private lateinit var dataStatus: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
+
+        networkProgress = findViewById(R.id.progress)
+        dataStatus = findViewById(R.id.tvDataStatus)
 
         viewModel.observeState(this){
             it.event?.peek { event-> handleScreenEvent(event) }
@@ -47,16 +58,43 @@ class MapsActivity : BaseActivity(), OnMapReadyCallback, PermissionCallback {
                 markPinPointData(pinPoints)
                 Log.e(TAG,"printing out size of points "+pinPoints.size)
             })
+            it.fetchingFromNetwork?.observe(this, Observer { fetchPair->
+                networkCall(fetchPair)
+            })
         }
         lifecycle.addObserver(viewModel)
 
-        val mapFragment = supportFragmentManager
-            .findFragmentById(R.id.map) as SupportMapFragment
-        mapFragment.getMapAsync(this)
 
         val btnShow = findViewById<Button>(R.id.btnShowList)
         btnShow.setOnClickListener{
             showBottomLocations()
+        }
+
+        var mapFragment = getActivity()
+            .supportFragmentManager.findFragmentById(R.id.mapView) as SupportMapFragment?
+        if (mapFragment == null) {
+            mapFragment = SupportMapFragment.newInstance()
+            supportFragmentManager.beginTransaction().replace(R.id.mapView, mapFragment).commit()
+        }
+        mapFragment?.let {
+            mapFragment.getMapAsync(this)
+        }
+    }
+
+
+    private fun networkCall(fetchPair: Pair<Boolean,Boolean>) {
+        if(fetchPair.first){
+            networkProgress.visibility = View.VISIBLE
+            dataStatus.visibility = View.INVISIBLE
+            return
+        }
+        // throttling network loader so that it doesn't look glitchy
+        Handler().postDelayed({
+            networkProgress.visibility = View.INVISIBLE
+        },1000)
+        // network call failed, cache copy(if any) was returned
+        if(!fetchPair.second) {
+            dataStatus.visibility = View.VISIBLE
         }
     }
 
@@ -86,8 +124,6 @@ class MapsActivity : BaseActivity(), OnMapReadyCallback, PermissionCallback {
                 markUserLocation()
                 true
             }
-
-
             else->false
         }
     }
@@ -99,7 +135,10 @@ class MapsActivity : BaseActivity(), OnMapReadyCallback, PermissionCallback {
     }
 
     private fun markPinPointData(pinPoints: List<PinPoint>) {
-        mMap
+        if(!::mMap.isInitialized) {
+            Log.e(TAG,"map is null while plotting points ")
+            return
+        }
         for(pinPoint in pinPoints) {
             val userLocation = LatLng(pinPoint.latitude, pinPoint.longitude)
             mMap.addMarker(MarkerOptions().position(userLocation)
@@ -124,11 +163,12 @@ class MapsActivity : BaseActivity(), OnMapReadyCallback, PermissionCallback {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         fusedLocationClient.lastLocation.addOnSuccessListener { location ->
             location?.let {
-                val userLocation = LatLng(location.latitude, location.longitude)
+                val userLocation = LatLng(40.6923372,-73.9882378)
                 mMap.addMarker(MarkerOptions()
                     .position(userLocation).title(resources.getString(R.string.user_location_status))
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)))
-                mMap.moveCamera(CameraUpdateFactory.newLatLng(userLocation))
+                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(userLocation,14f))
+
             }
         }
     }
