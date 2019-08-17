@@ -38,6 +38,8 @@ class MapsActivity : BaseActivity(), OnMapReadyCallback, PermissionCallback {
     private val permissionManager: PermissionManager by inject()
 
     private val TAG:String = MapsActivity::class.java.name
+    val LOCATION_PERMISSION_DIALOG_OPEN_KEY = "location_permission_dialog_open_key"
+    private var alreadyAskedForLocationPermission = false
 
     private val viewModel by providedViewModel<MapViewModel>()
     private lateinit var mMap: GoogleMap
@@ -48,6 +50,11 @@ class MapsActivity : BaseActivity(), OnMapReadyCallback, PermissionCallback {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_maps)
+
+        if(savedInstanceState != null) {
+            alreadyAskedForLocationPermission =
+                savedInstanceState.getBoolean(LOCATION_PERMISSION_DIALOG_OPEN_KEY, false)
+        }
 
         networkProgress = findViewById(R.id.progress)
         dataStatus = findViewById(R.id.tvDataStatus)
@@ -79,6 +86,11 @@ class MapsActivity : BaseActivity(), OnMapReadyCallback, PermissionCallback {
         mapFragment?.let {
             mapFragment.getMapAsync(this)
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(LOCATION_PERMISSION_DIALOG_OPEN_KEY, alreadyAskedForLocationPermission)
     }
 
 
@@ -131,7 +143,10 @@ class MapsActivity : BaseActivity(), OnMapReadyCallback, PermissionCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         mMap = googleMap
         viewModel.getPinPoints()
-        permissionManager.checkLocationPermission(this)
+        if(!alreadyAskedForLocationPermission){
+            alreadyAskedForLocationPermission = true
+            permissionManager.checkLocationPermission(this)
+        }
     }
 
     private fun markPinPointData(pinPoints: List<PinPoint>) {
@@ -160,6 +175,7 @@ class MapsActivity : BaseActivity(), OnMapReadyCallback, PermissionCallback {
         if (!permissionManager.isPermissionGranted()) {
             return
         }
+
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         fusedLocationClient.lastLocation.addOnSuccessListener { location ->
             location?.let {
@@ -193,6 +209,10 @@ class MapsActivity : BaseActivity(), OnMapReadyCallback, PermissionCallback {
 
     override fun getActivity(): BaseActivity {
         return this
+    }
+
+    override fun notifyPermissionDialogDismissed() {
+        alreadyAskedForLocationPermission = false
     }
 
 }

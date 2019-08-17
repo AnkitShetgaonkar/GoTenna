@@ -38,7 +38,12 @@ class MapViewModel:BaseViewModel<MapViewState>(),LifecycleObserver, PermissionCa
     }
 
     override fun getActivity(): BaseActivity? {
+        //do nothing
         return null
+    }
+
+    override fun notifyPermissionDialogDismissed() {
+        //do nothing
     }
 
     fun getPinPoints() {

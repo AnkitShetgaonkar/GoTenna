@@ -41,6 +41,7 @@ class PermissionManager(private val context: Context){
                                    permissionsCallback:PermissionCallback){
         when (requestCode) {
             MY_PERMISSIONS_FINE_LOCATION -> {
+                permissionsCallback.notifyPermissionDialogDismissed()
                 if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                     permissionsCallback.permissionGranted()
                 }else{
@@ -73,6 +74,7 @@ interface PermissionCallback {
     fun showPermissionRationale()
     fun permissionBlocked()
     fun permissionGranted()
+    fun notifyPermissionDialogDismissed()
     fun getActivity():BaseActivity?
 }
 
